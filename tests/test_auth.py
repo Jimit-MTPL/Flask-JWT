@@ -1,6 +1,7 @@
 import unittest
 import json
-from app import create_app, db
+from app import create_app
+from app.db_setup import db
 from app.models import User, TokenBlacklist # Assuming TokenBlacklist might be needed for some tests
 
 class AuthTestCase(unittest.TestCase):
