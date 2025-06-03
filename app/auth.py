@@ -1,11 +1,11 @@
 from flask import jsonify, request
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt, JWTManager
-from .models import User
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt, JWTManager
+from .models import User, TokenBlacklist
 from .db_setup import db
 import datetime
+import logging
 
-
-blacklist = set()
+logger = logging.getLogger(__name__)
 jwt = JWTManager()
 
 def signup():
@@ -13,6 +13,7 @@ def signup():
     password = request.json.get('password')
 
     if User.query.filter_by(email=email).first():
+        logger.warning(f"Signup attempt with existing email: {email}")
         return jsonify({"msg": "User already exists"}), 400
 
     new_user = User(email=email)
@@ -21,6 +22,7 @@ def signup():
     db.session.add(new_user)
     db.session.commit()
 
+    logger.info(f"User created successfully: {email}")
     return jsonify({"msg": "User created successfully"}), 201
 
 def login():
@@ -29,11 +31,18 @@ def login():
 
     user = User.query.filter_by(email=email).first()
 
-    if not user or not user.check_password(password):
-        return jsonify({"msg": "Bad credentials"}), 401
+    if not user:
+        logger.warning(f"Login attempt for non-existent user: {email}")
+        return jsonify({"msg": "Bad email or password"}), 401
+
+    if not user.check_password(password):
+        logger.warning(f"Invalid password attempt for user: {email}")
+        return jsonify({"msg": "Bad email or password"}), 401
 
     access_token = create_access_token(identity=email, expires_delta=datetime.timedelta(hours=1))
-    return jsonify(access_token=access_token), 200
+    refresh_token = create_refresh_token(identity=email)
+    logger.info(f"User logged in successfully: {email}")
+    return jsonify(access_token=access_token, refresh_token=refresh_token), 200
 
 @jwt_required()
 def check_login():
@@ -41,15 +50,16 @@ def check_login():
 
 @jwt_required()
 def logout():
-    # Add the token to the blacklist
-    jti = get_jwt()['jti']  # Get the unique identifier for the JWT
-    blacklist.add(jti)  # Add the token to the blacklist
+    jti = get_jwt()['jti']
+    token = TokenBlacklist(jti=jti)
+    db.session.add(token)
+    db.session.commit()
+    logger.info(f"User logged out successfully. Token JTI blacklisted: {jti}")
     return jsonify({"msg": "Successfully logged out"}), 200
 
 # Create a custom JWT loader that checks for blacklisted tokens
-"""
 @jwt.token_in_blocklist_loader
 def check_if_token_in_blacklist(jwt_header, jwt_payload):
     jti = jwt_payload['jti']
-    return jti in blacklist
-"""
+    token = TokenBlacklist.query.filter_by(jti=jti).one_or_none()
+    return token is not None
