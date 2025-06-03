@@ -111,6 +111,15 @@ Before you begin, ensure you have the following installed:
     -   Copy these values and paste them into the `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` variables in your `.env` file.
     -   Ensure the "OAuth 2.0 API" (sometimes listed as "Google People API" or similar for profile info) is enabled in the "APIs & Services" > "Library" section for your project. Flask-Dance uses this to fetch user information.
 
+    #### Note on HTTP for Local Development (`InsecureTransportError`)
+    When running your Flask development server locally, it typically uses HTTP. Google OAuth 2.0, by default, requires HTTPS for all communications, and attempting to use it over HTTP will result in an `InsecureTransportError` from the `oauthlib` library used by Flask-Dance.
+
+    For **local development and testing purposes only**, you can allow OAuth 2.0 to run over HTTP by setting the following environment variable in your `.env` file:
+    ```
+    OAUTHLIB_INSECURE_TRANSPORT="1"
+    ```
+    **IMPORTANT**: This setting **must not** be used in a production environment. In production, you must use HTTPS for all OAuth communications to ensure security. Remove this variable or set it to `"0"` in production.
+
 6.  **Initialize the Database:**
     Once your environment variables (especially `DATABASE_URL`) are correctly set in your `.env` file, run the following command from the project root directory (with your virtual environment still active) to create the necessary database tables:
     ```bash
@@ -206,6 +215,7 @@ Key variables include:
 -   `GOOGLE_OAUTH_CLIENT_ID`: Your Google OAuth 2.0 Client ID. Obtained from the Google Cloud Console. This is required for the "Login with Google" feature.
 -   `GOOGLE_OAUTH_CLIENT_SECRET`: Your Google OAuth 2.0 Client Secret. Obtained from the Google Cloud Console. This is required for the "Login with Google" feature.
 -   `FRONTEND_URL`: The URL to your frontend application. After a successful Google OAuth login, the backend redirects the user to this URL with access and refresh tokens as query parameters. Example: `/frontend/web-client/index.html` for local file access or `http://localhost:3000` if served separately.
+-   `OAUTHLIB_INSECURE_TRANSPORT`: Set to `"1"` to allow OAuth 2.0 to run over HTTP during local development for Google OAuth. **Crucial Warning**: This is for development/testing only. **Never use this setting in production.** Production environments must use HTTPS for OAuth.
 
 ## Running Tests
 
