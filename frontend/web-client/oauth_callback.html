@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Login Callback</title>
+    <link rel="stylesheet" href="style.css"> <!-- Optional: for basic styling -->
+    <style>
+        /* Additional styles specific to this page if needed */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Processing Login</h1>
+        <p>Finalizing your Google login, please wait a moment...</p>
+        <p id="callbackMessageArea" style="color: red; margin-top: 10px;"></p>
+    </div>
+    <script src="callback_script.js" defer></script>
+</body>
+</html>

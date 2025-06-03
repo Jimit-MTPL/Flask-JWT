@@ -198,8 +198,10 @@ All request and response bodies are in JSON format.
     -   Error response (401/422): If token is missing, invalid, or expired.
 
 -   **`GET /login/google`**: Initiates the Google OAuth 2.0 login flow. This endpoint redirects the user to Google's authentication page.
-    -   Upon successful authentication with Google, Google redirects the user back to the application at a pre-configured "Authorized redirect URI" (handled by Flask-Dance, typically `/login/google/authorized`).
-    -   The backend then processes the callback, creates or logs in the user, generates JWT access and refresh tokens, and finally redirects the user to the `FRONTEND_URL` (defined in your `.env` file) with these tokens appended as query parameters (e.g., `your-frontend-url?access_token=...&refresh_token=...`).
+    -   Upon successful authentication with Google, Google redirects the user back to the application's backend at a pre-configured "Authorized redirect URI" (e.g., `http://127.0.0.1:5000/login/google/authorized`, handled by Flask-Dance).
+    -   The backend (`/login/google/authorized` route) then processes Google's callback, creates or logs in the user, and generates JWT access and refresh tokens.
+    -   Finally, the backend redirects the user's browser to the `FRONTEND_URL` (which should point to `oauth_callback.html`, as defined in your `.env` file) with these tokens appended as query parameters (e.g., `/frontend/web-client/oauth_callback.html?access_token=...&refresh_token=...`).
+    -   The `oauth_callback.html` page, using `callback_script.js`, extracts these tokens from the URL, stores them in `localStorage`, and then redirects to the main `index.html` page.
 
 ## Environment Variables
 
@@ -214,7 +216,7 @@ Key variables include:
 -   `DATABASE_URL`: The connection string for the SQLAlchemy database (e.g., `postgresql://user:password@host:port/database` or `sqlite:///./instance/app.db`).
 -   `GOOGLE_OAUTH_CLIENT_ID`: Your Google OAuth 2.0 Client ID. Obtained from the Google Cloud Console. This is required for the "Login with Google" feature.
 -   `GOOGLE_OAUTH_CLIENT_SECRET`: Your Google OAuth 2.0 Client Secret. Obtained from the Google Cloud Console. This is required for the "Login with Google" feature.
--   `FRONTEND_URL`: The URL to your frontend application. After a successful Google OAuth login, the backend redirects the user to this URL with access and refresh tokens as query parameters. Example: `/frontend/web-client/index.html` for local file access or `http://localhost:3000` if served separately.
+-   `FRONTEND_URL`: The URL to the frontend OAuth callback page (e.g., `/frontend/web-client/oauth_callback.html`). After successful Google authentication and backend processing, the user is redirected here by the backend with tokens in the URL query parameters. This page then saves the tokens and redirects to the main frontend page (e.g., `index.html`).
 -   `OAUTHLIB_INSECURE_TRANSPORT`: Set to `"1"` to allow OAuth 2.0 to run over HTTP during local development for Google OAuth. **Crucial Warning**: This is for development/testing only. **Never use this setting in production.** Production environments must use HTTPS for OAuth.
 
 ## Running Tests
@@ -256,7 +258,9 @@ The web client provides a user interface to:
 - Refresh an access token using a refresh token.
 - Fetch data from a protected API endpoint.
 - Display API responses and error messages.
-- Initiate login via Google using the "Login with Google" button. The page then handles the callback from the backend (which includes tokens in the URL) to store tokens and complete the login.
+- Initiate login via Google using the "Login with Google" button. This redirects to the backend, which then goes through the Google OAuth flow.
+- After returning from Google, the user is redirected by the backend to `oauth_callback.html` (with tokens in the URL). This page's script (`callback_script.js`) saves the tokens to `localStorage` and then redirects to `index.html`.
+- The main `index.html` page (`script.js`) then uses these tokens from `localStorage` for subsequent authenticated actions.
 
 ### Important Notes:
 
