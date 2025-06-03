@@ -1,18 +1,21 @@
 from flask import Flask
 #from flask_jwt_extended import JWTManager
 from .routes import routes
-from .db_setup import init_db
+from .db_setup import init_db # db instance is created here
 from dotenv import load_dotenv
 import os
 import datetime
 import logging
 from .auth import jwt
+from . import models # Import models to make them known to SQLAlchemy for db.create_all()
 from flask_dance.contrib.google import make_google_blueprint, google
+from flask_cors import CORS
 
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    CORS(app) # Enable CORS for all routes and origins by default
 
     # Basic Logging Configuration
     logging.basicConfig(level=logging.INFO,
@@ -29,9 +32,21 @@ def create_app():
     jwt.init_app(app)
 
     # Initialize database
-    db = init_db(app)
-    with app.app_context():
-        db.create_all()
+    db = init_db(app) # db object is initialized by init_db
+
+    # Comment out automatic db.create_all() to prefer manual CLI command
+    # with app.app_context():
+    #     db.create_all()
+
+    # Define CLI command for database initialization
+    @app.cli.command("init-db")
+    def init_db_command():
+        """Creates the database tables."""
+        # Need to ensure models are imported somewhere before db.create_all() is called.
+        # models are imported at the top of this file now.
+        with app.app_context(): # Ensure commands run within app context
+            db.create_all()
+        print("Initialized the database.")
 
     google_bp = make_google_blueprint(
         client_id=os.getenv('GOOGLE_OAUTH_CLIENT_ID'),

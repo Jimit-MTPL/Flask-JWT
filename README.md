@@ -57,8 +57,14 @@ A Flask-based web application demonstrating user authentication with JWT (JSON W
     ```
     Edit the `.env` file and provide actual values for the variables. See the "Environment Variables" section below for details.
 
+    The application uses Flask-CORS to handle Cross-Origin Resource Sharing, which is automatically enabled. This helps the web frontend (if served or opened from a different origin/port) communicate with the API during local development.
+
 5.  **Initialize the database:**
-    (The application is currently set to create database tables automatically on startup if they don't exist. For production, you might want to use migrations like Flask-Migrate.)
+    Run the following command from the project root to create the necessary database tables:
+    ```bash
+    flask init-db
+    ```
+    This command needs to be run once after setting up your `DATABASE_URL` environment variable.
 
 ## Running the Application
 
@@ -172,5 +178,5 @@ The web client provides a user interface to:
 
 ### Important Notes:
 
--   **CORS (Cross-Origin Resource Sharing)**: If you serve the `index.html` file from a different origin (e.g., using a live server extension in your IDE that runs on a different port) than the backend API, you might encounter CORS errors. For this project, it's assumed the backend might need a CORS configuration (e.g., using `Flask-CORS`) if the frontend is not simply opened as a local file (`file:///...`) or served from the same origin. The `script.js` file currently assumes the backend is at `http://127.0.0.1:5000`.
+-   **CORS (Cross-Origin Resource Sharing)**: The backend is configured with `Flask-CORS` to allow requests from different origins (e.g., if you open `index.html` directly or serve it via a local development server on a different port). The default configuration is permissive. The `script.js` file assumes the backend is at `http://127.0.0.1:5000`.
 -   **Simplicity**: This client is for demonstration and testing purposes and lacks advanced features, styling, or production-ready error handling beyond basic messages.

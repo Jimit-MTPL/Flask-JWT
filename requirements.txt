@@ -8,3 +8,4 @@ datetime
 Flask-Dance 
 oauthlib 
 requests
+Flask-CORS
