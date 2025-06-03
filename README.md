@@ -148,3 +148,29 @@ The project includes unit tests for the authentication system. To run the tests:
     ```
 
 This command will discover and run all test cases found in files matching `test_*.py` within the `tests` directory.
+
+## Web Frontend Client
+
+A simple HTML, CSS, and JavaScript based web client is available in the `frontend/web-client/` directory. This client allows you to interact with the backend API for most authentication features.
+
+### How to Use:
+
+1.  **Ensure the Backend is Running**: The Flask backend application (typically on `http://127.0.0.1:5000/`) must be running.
+2.  **Open `index.html`**: Navigate to the `frontend/web-client/` directory in your file explorer.
+3.  Open the `index.html` file directly in your web browser (e.g., Chrome, Firefox, Safari, Edge).
+
+### Functionality:
+
+The web client provides a user interface to:
+- Sign up a new user.
+- Log in with existing credentials.
+- Store access and refresh tokens in `localStorage`.
+- Log out (which blacklists the access token on the backend).
+- Refresh an access token using a refresh token.
+- Fetch data from a protected API endpoint.
+- Display API responses and error messages.
+
+### Important Notes:
+
+-   **CORS (Cross-Origin Resource Sharing)**: If you serve the `index.html` file from a different origin (e.g., using a live server extension in your IDE that runs on a different port) than the backend API, you might encounter CORS errors. For this project, it's assumed the backend might need a CORS configuration (e.g., using `Flask-CORS`) if the frontend is not simply opened as a local file (`file:///...`) or served from the same origin. The `script.js` file currently assumes the backend is at `http://127.0.0.1:5000`.
+-   **Simplicity**: This client is for demonstration and testing purposes and lacks advanced features, styling, or production-ready error handling beyond basic messages.

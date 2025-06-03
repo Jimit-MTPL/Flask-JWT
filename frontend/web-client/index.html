@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Client</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Flask JWT Web Client</h1>
+
+    <div id="messageArea" style="color: red; margin-bottom: 15px;"></div>
+
+    <h2>User Actions</h2>
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <button id="signupButton">Signup</button>
+    <button id="loginButton">Login</button>
+
+    <hr>
+
+    <h2>Token Actions</h2>
+    <button id="logoutButton">Logout</button>
+    <button id="refreshTokenButton">Refresh Token</button>
+
+    <hr>
+
+    <h2>Protected Data</h2>
+    <button id="fetchProtectedButton">Fetch Protected Data</button>
+    <div id="protectedDataOutput" style="margin-top: 10px; border: 1px solid #ccc; padding: 10px; min-height: 50px;">
+        Protected data will appear here...
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
