@@ -91,11 +91,27 @@ Before you begin, ensure you have the following installed:
     ```bash
     cp .env.example .env
     ```
-    Open the newly created `.env` file and provide actual, secure values for all the variables listed. Refer to the "Environment Variables" section below for detailed explanations of each variable.
+    Open the newly created `.env` file and provide actual, secure values for all the variables listed. Refer to the "Environment Variables" section below for detailed explanations of each variable, especially for Google OAuth setup.
 
     *Note on Flask-CORS*: This application includes `Flask-CORS` to handle Cross-Origin Resource Sharing. It's enabled by default in `app/__init__.py` which allows the web frontend (even if opened as a local `file:///` or served from a different port during development) to communicate with the API without common CORS errors.
 
-5.  **Initialize the Database:**
+5.  **Set Up Google OAuth 2.0 Credentials:**
+    To use the "Login with Google" feature, you need to configure OAuth 2.0 credentials in the Google Cloud Console.
+    -   Go to the [Google Cloud Console](https://console.cloud.google.com/).
+    -   Create a new project or select an existing one.
+    -   Navigate to "APIs & Services" > "Credentials".
+    -   Click "+ CREATE CREDENTIALS" and choose "OAuth client ID".
+    -   Configure the OAuth consent screen if you haven't already. For "User Type", you can choose "External" for testing. Fill in the required app information. For scopes, you can leave it blank for now or add basic `email` and `profile` if needed later.
+    -   For the "Application type", select "Web application".
+    -   **Authorized JavaScript origins**: Add URIs like `http://127.0.0.1:5000` and `http://localhost:5000`. If you use a different port for your local Flask development server, add that too. If your frontend is served on a different port (e.g., by a live server extension), add that origin as well (e.g., `http://localhost:8080`).
+    -   **Authorized redirect URIs**: This is critical. It must match the URI that Google will redirect to after successful authentication. For this application (using Flask-Dance), it's typically the path of your Google login route (`/login/google`) plus `/authorized`. So, if your app runs on `http://127.0.0.1:5000`, you should add:
+        -   `http://127.0.0.1:5000/login/google/authorized`
+        -   `http://localhost:5000/login/google/authorized` (it's good to have both `127.0.0.1` and `localhost`)
+    -   Click "Create". You will be shown a "Client ID" and "Client secret".
+    -   Copy these values and paste them into the `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` variables in your `.env` file.
+    -   Ensure the "OAuth 2.0 API" (sometimes listed as "Google People API" or similar for profile info) is enabled in the "APIs & Services" > "Library" section for your project. Flask-Dance uses this to fetch user information.
+
+6.  **Initialize the Database:**
     Once your environment variables (especially `DATABASE_URL`) are correctly set in your `.env` file, run the following command from the project root directory (with your virtual environment still active) to create the necessary database tables:
     ```bash
     flask init-db
@@ -172,8 +188,9 @@ All request and response bodies are in JSON format.
     -   Success response (200): `{ "msg": "This is a protected route" }`
     -   Error response (401/422): If token is missing, invalid, or expired.
 
--   **`GET /login/google`**: Initiates Google OAuth login. Redirects to Google's authentication page.
--   (Callback URL for Google OAuth is handled by Flask-Dance, usually `/login/google/authorized`)
+-   **`GET /login/google`**: Initiates the Google OAuth 2.0 login flow. This endpoint redirects the user to Google's authentication page.
+    -   Upon successful authentication with Google, Google redirects the user back to the application at a pre-configured "Authorized redirect URI" (handled by Flask-Dance, typically `/login/google/authorized`).
+    -   The backend then processes the callback, creates or logs in the user, generates JWT access and refresh tokens, and finally redirects the user to the `FRONTEND_URL` (defined in your `.env` file) with these tokens appended as query parameters (e.g., `your-frontend-url?access_token=...&refresh_token=...`).
 
 ## Environment Variables
 
@@ -185,11 +202,10 @@ Key variables include:
 
 -   `FLASK_SECRET_KEY`: A secret key for Flask application sessions and other security-related features (e.g., CSRF protection if used).
 -   `JWT_SECRET_KEY`: The secret key used to sign and verify JWTs. This should be a strong, random string.
--   `DATABASE_URL`: The connection string for the SQLAlchemy database.
-    -   Example for PostgreSQL: `postgresql://user:password@host:port/database`
-    -   Example for SQLite (local development): `sqlite:///./instance/app.db`
--   `GOOGLE_OAUTH_CLIENT_ID`: Your Google OAuth Client ID.
--   `GOOGLE_OAUTH_CLIENT_SECRET`: Your Google OAuth Client Secret.
+-   `DATABASE_URL`: The connection string for the SQLAlchemy database (e.g., `postgresql://user:password@host:port/database` or `sqlite:///./instance/app.db`).
+-   `GOOGLE_OAUTH_CLIENT_ID`: Your Google OAuth 2.0 Client ID. Obtained from the Google Cloud Console. This is required for the "Login with Google" feature.
+-   `GOOGLE_OAUTH_CLIENT_SECRET`: Your Google OAuth 2.0 Client Secret. Obtained from the Google Cloud Console. This is required for the "Login with Google" feature.
+-   `FRONTEND_URL`: The URL to your frontend application. After a successful Google OAuth login, the backend redirects the user to this URL with access and refresh tokens as query parameters. Example: `/frontend/web-client/index.html` for local file access or `http://localhost:3000` if served separately.
 
 ## Running Tests
 
@@ -230,6 +246,7 @@ The web client provides a user interface to:
 - Refresh an access token using a refresh token.
 - Fetch data from a protected API endpoint.
 - Display API responses and error messages.
+- Initiate login via Google using the "Login with Google" button. The page then handles the callback from the backend (which includes tokens in the URL) to store tokens and complete the login.
 
 ### Important Notes:
 

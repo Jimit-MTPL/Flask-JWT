@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify, redirect, url_for
+from flask import Blueprint, jsonify, redirect, url_for, current_app
 from .auth import signup, login, logout, check_login
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity
 from flask_dance.contrib.google import google
 from .models import User
 import datetime
@@ -46,15 +46,27 @@ def google_login():
 
     # Check if user exists in DB
     user = User.query.filter_by(email=email).first()
+    db_user = user # Assign to a common variable to use after if/else
 
-    if user is None:
+    if db_user is None:
         # Automatically sign up the user
-        new_user = User(email=email)
-        db.session.add(new_user)
+        logger.info(f"New user signup via Google OAuth: {email}")
+        db_user = User(email=email) # Password will be null
+        db.session.add(db_user)
         db.session.commit()
+    else:
+        logger.info(f"User login via Google OAuth: {email}")
 
-    # Return success or token
-    return jsonify({"msg": "Logged in with Google"}), 200
+    # Generate tokens for the user
+    access_token = create_access_token(identity=db_user.email)
+    refresh_token = create_refresh_token(identity=db_user.email)
+
+    # Redirect to frontend with tokens
+    frontend_url = current_app.config['FRONTEND_URL']
+    redirect_url = f"{frontend_url}?access_token={access_token}&refresh_token={refresh_token}"
+
+    logger.info(f"Redirecting Google OAuth user {db_user.email} to frontend.")
+    return redirect(redirect_url)
 
 @routes.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)

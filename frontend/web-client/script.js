@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('password');
     const signupButton = document.getElementById('signupButton');
     const loginButton = document.getElementById('loginButton');
+    const googleLoginButton = document.getElementById('googleLoginButton'); // New button
     const logoutButton = document.getElementById('logoutButton');
     const refreshTokenButton = document.getElementById('refreshTokenButton');
     const fetchProtectedButton = document.getElementById('fetchProtectedButton');
@@ -46,6 +47,32 @@ document.addEventListener('DOMContentLoaded', () => {
         messageArea.textContent = '';
         messageArea.className = '';
     };
+
+    // --- OAuth Callback Handler ---
+    const handleOAuthCallback = () => {
+        const params = new URLSearchParams(window.location.search);
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        const error = params.get('error'); // Check for an error parameter
+
+        if (accessToken && refreshToken) {
+            saveTokens(accessToken, refreshToken);
+            displayMessage('Logged in successfully with Google!');
+            // Clean up URL
+            history.replaceState(null, '', window.location.pathname);
+            // Optionally, clear email/password fields if they were filled
+            if(emailInput) emailInput.value = '';
+            if(passwordInput) passwordInput.value = '';
+        } else if (error) {
+            displayMessage(`OAuth Error: ${error}`, true);
+            // Clean up URL
+            history.replaceState(null, '', window.location.pathname);
+        }
+        // If no tokens and no error, it's a normal page load, do nothing.
+    };
+
+    // Call on page load to handle potential OAuth redirect
+    handleOAuthCallback();
 
     // --- API Call Helper ---
     async function apiCall(endpoint, method = 'GET', body = null, requiresAuth = false) {
@@ -178,5 +205,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             protectedDataOutput.textContent = 'Failed to fetch protected data.';
         }
+    });
+
+    googleLoginButton.addEventListener('click', () => {
+        clearMessage();
+        // Redirect to the backend's Google login route
+        window.location.href = BASE_URL + '/login/google';
     });
 });

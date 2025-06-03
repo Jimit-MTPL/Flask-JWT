@@ -27,6 +27,7 @@ def create_app():
     app.config['JWT_ALGORITHM'] = 'HS256'
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)
+    app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', '/frontend/web-client/index.html')
 
     app.debug = True # TODO: Set to False in production
     jwt.init_app(app)
