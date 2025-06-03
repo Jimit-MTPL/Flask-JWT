@@ -148,7 +148,7 @@ class AuthTestCase(unittest.TestCase):
         response = self.client.post('/refresh', headers={
             "Authorization": f"Bearer {access_token}" # Using access token here
         })
-        self.assertEqual(response.status_code, 401) # Or 422 if wrong token type is caught by JWT ext
+        self.assertEqual(response.status_code, 422) # Expect 422 as flask-jwt-extended identifies wrong token type
 
 if __name__ == '__main__':
     unittest.main()
