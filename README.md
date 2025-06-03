@@ -13,54 +13,90 @@ A Flask-based web application demonstrating user authentication with JWT (JSON W
 - Configuration via environment variables
 - Basic logging
 - Unit tests
+- Basic web frontend for API interaction
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+-   **Python**: Version 3.8 or higher is recommended. You can download it from [python.org](https://www.python.org/).
+-   **pip**: The Python package installer (usually comes with Python).
+-   **Virtual Environment Tool** (optional but highly recommended): Python's `venv` module (standard in Python 3) or `virtualenv`.
+-   **Git**: For cloning the repository (optional if you download the source code as a ZIP file). You can get Git from [git-scm.com](https://git-scm.com/).
+-   **Flask CLI**: This is part of the Flask installation (covered in the setup steps below) and is used for running the development server (`flask run`) and database initialization commands (`flask init-db`).
 
 ## Project Structure
 
 ```
 .
-├── app/                  # Main application module
-│   ├── __init__.py       # Application factory, Flask app setup
-│   ├── auth.py           # Authentication logic (signup, login, JWT callbacks)
-│   ├── db_setup.py       # Database setup and initialization
-│   ├── models.py         # SQLAlchemy database models (User, TokenBlacklist)
-│   └── routes.py         # API routes definition
-├── tests/                # Unit tests
-│   └── test_auth.py      # Authentication tests
-├── .env.example          # Example environment variables file
-├── requirements.txt      # Python dependencies
-└── README.md             # This file
+├── app/                            # Main Flask application module
+│   ├── __init__.py                 # Application factory, Flask app setup, CORS, CLI commands
+│   ├── auth.py                     # Authentication logic (signup, login, JWT callbacks, etc.)
+│   ├── db_setup.py                 # Database setup (SQLAlchemy instance and initialization)
+│   ├── models.py                   # SQLAlchemy database models (User, TokenBlacklist)
+│   └── routes.py                   # API endpoint definitions (Blueprints)
+│
+├── frontend/                       # Frontend applications
+│   ├── streamlit_app.py            # Original Streamlit frontend (may be outdated or separate)
+│   └── web-client/                 # Simple HTML/CSS/JS client for the auth API
+│       ├── index.html              # HTML structure for the web client
+│       ├── style.css               # CSS styles for the web client
+│       └── script.js               # JavaScript logic for interacting with the API
+│
+├── tests/                          # Unit and integration tests
+│   └── test_auth.py                # Authentication related tests
+│
+├── .env.example                    # Example template for environment variables
+├── .gitignore                      # Specifies intentionally untracked files that Git should ignore
+├── README.md                       # This project documentation file
+└── requirements.txt                # Python package dependencies for the backend
 ```
 
 ## Setup
 
-1.  **Clone the repository:**
+1.  **Clone the Repository:**
+    If you have Git installed, clone the repository from its source. Replace `<repository-url>` with the actual URL and `<project-directory>` with your desired local directory name.
     ```bash
     git clone <repository-url>
     cd <project-directory>
     ```
+    Alternatively, you can download the source code as a ZIP file and extract it.
 
-2.  **Create a virtual environment and activate it:**
+2.  **Create and Activate a Virtual Environment:**
+    Using a virtual environment is crucial for managing project-specific dependencies and avoiding conflicts with global Python packages.
+    Navigate into your project directory, then create a virtual environment (e.g., named `venv`):
     ```bash
     python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
     ```
+    Activate the virtual environment:
+    -   On macOS and Linux:
+        ```bash
+        source venv/bin/activate
+        ```
+    -   On Windows (Command Prompt/PowerShell):
+        ```bash
+        .\venv\Scripts\activate
+        ```
+    Your command prompt should now indicate that the virtual environment is active.
 
-3.  **Install dependencies:**
+3.  **Install Dependencies:**
+    With your virtual environment activated, install all the required Python packages listed in the `requirements.txt` file:
     ```bash
     pip install -r requirements.txt
     ```
 
-4.  **Set up environment variables:**
-    Copy the `.env.example` file to a new file named `.env`:
+4.  **Set Up Environment Variables:**
+    Environment variables are used to configure the application, especially for sensitive data like secret keys and database URLs.
+    Copy the `.env.example` file to a new file named `.env` in the project root:
     ```bash
     cp .env.example .env
     ```
-    Edit the `.env` file and provide actual values for the variables. See the "Environment Variables" section below for details.
+    Open the newly created `.env` file and provide actual, secure values for all the variables listed. Refer to the "Environment Variables" section below for detailed explanations of each variable.
 
-    The application uses Flask-CORS to handle Cross-Origin Resource Sharing, which is automatically enabled. This helps the web frontend (if served or opened from a different origin/port) communicate with the API during local development.
+    *Note on Flask-CORS*: This application includes `Flask-CORS` to handle Cross-Origin Resource Sharing. It's enabled by default in `app/__init__.py` which allows the web frontend (even if opened as a local `file:///` or served from a different port during development) to communicate with the API without common CORS errors.
 
-5.  **Initialize the database:**
-    Run the following command from the project root to create the necessary database tables:
+5.  **Initialize the Database:**
+    Once your environment variables (especially `DATABASE_URL`) are correctly set in your `.env` file, run the following command from the project root directory (with your virtual environment still active) to create the necessary database tables:
     ```bash
     flask init-db
     ```
@@ -68,13 +104,32 @@ A Flask-based web application demonstrating user authentication with JWT (JSON W
 
 ## Running the Application
 
-To run the Flask development server:
+After completing all the setup steps:
 
-```bash
-flask run
-```
+1.  **Ensure your virtual environment is activated.** (Your command prompt should indicate this).
+2.  **Ensure you are in the project root directory.**
+3.  **(Optional but Recommended) Set `FLASK_APP` environment variable:**
+    The Flask CLI needs to know where your application instance is. You can set this environment variable:
+    -   On macOS and Linux:
+        ```bash
+        export FLASK_APP=app
+        ```
+    -   On Windows (Command Prompt):
+        ```bash
+        set FLASK_APP=app
+        ```
+    -   On Windows (PowerShell):
+        ```bash
+        $env:FLASK_APP = "app"
+        ```
+    (This tells Flask to look for the application factory `create_app` in the `app` package/directory. You can also set this in a `.flaskenv` file in your project root by adding the line `FLASK_APP=app`.)
 
-Or, if you have a `run.py` or similar entry point (not provided in this project structure, assuming direct Flask CLI usage):
+4.  **Run the Flask development server:**
+    ```bash
+    flask run
+    ```
+
+Alternatively, if you were to use a `run.py` file (not included by default in this project, which uses the Flask CLI pattern):
 
 ```bash
 python run.py
